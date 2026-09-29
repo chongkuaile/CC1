@@ -16,6 +16,13 @@ public class BitwiseOperator extends javax.swing.JFrame {
      */
     public BitwiseOperator() {
         initComponents();
+        // Extra setup (kept outside initComponents so the Form Editor won't overwrite it)
+        OutputArea.setEditable(true);
+        OutputArea.setLineWrap(true);
+        OutputArea.setWrapStyleWord(true);
+        OutputArea.setFont(new java.awt.Font(java.awt.Font.MONOSPACED, java.awt.Font.PLAIN, 13));
+        setTitle("Bitwise Operator");
+        setLocationRelativeTo(null);
     }
 
     /**
@@ -38,9 +45,8 @@ public class BitwiseOperator extends javax.swing.JFrame {
         jScrollPane1 = new javax.swing.JScrollPane();
         OutputArea = new javax.swing.JTextArea();
         GoButton = new javax.swing.JButton();
-        OutputArea.setFont(new java.awt.Font(java.awt.Font.MONOSPACED, java.awt.Font.PLAIN, 13));
-        setTitle("Bitwise Operator");
-        setLocationRelativeTo(null);
+        Base1ComboBox = new javax.swing.JComboBox<>();
+        Base2ComboBox = new javax.swing.JComboBox<>();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -63,6 +69,10 @@ public class BitwiseOperator extends javax.swing.JFrame {
         GoButton.setText("Go");
         GoButton.addActionListener(this::GoButtonActionPerformed);
 
+        Base1ComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Decimal", "Binary", "Octal", "Hex" }));
+
+        Base2ComboBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Decimal", "Binary", "Octal", "Hex" }));
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -84,8 +94,14 @@ public class BitwiseOperator extends javax.swing.JFrame {
                                 .addComponent(jLabel3)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                                 .addComponent(BitsComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addComponent(InputField1, javax.swing.GroupLayout.PREFERRED_SIZE, 256, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(InputField2, javax.swing.GroupLayout.PREFERRED_SIZE, 256, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addComponent(InputField1, javax.swing.GroupLayout.PREFERRED_SIZE, 170, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(Base1ComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(jPanel1Layout.createSequentialGroup()
+                                .addComponent(InputField2, javax.swing.GroupLayout.PREFERRED_SIZE, 170, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(Base2ComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))))
                 .addContainerGap(17, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
@@ -94,11 +110,13 @@ public class BitwiseOperator extends javax.swing.JFrame {
                 .addGap(27, 27, 27)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(InputField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel1))
+                    .addComponent(jLabel1)
+                    .addComponent(Base1ComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(InputField2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel2))
+                    .addComponent(jLabel2)
+                    .addComponent(Base2ComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(BitwiseGatesComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -124,123 +142,147 @@ public class BitwiseOperator extends javax.swing.JFrame {
         pack();
     }// </editor-fold>                        
 
-private void InputField1ActionPerformed(java.awt.event.ActionEvent evt) {
-    GoButtonActionPerformed(evt);
-}
+    private void InputField1ActionPerformed(java.awt.event.ActionEvent evt) {                                            
+        // Pressing Enter in the first field does the same thing as clicking "Go"
+        GoButtonActionPerformed(evt);
+    }                                           
 
-private void GoButtonActionPerformed(java.awt.event.ActionEvent evt) {
-    String operation = (String) BitwiseGatesComboBox.getSelectedItem();
-    int bits = BitsComboBox.getSelectedIndex() == 0 ? 8 : 16;
-    int mask = (1 << bits) - 1;          // 8 bit -> 255, 16 bit -> 65535
+    private void GoButtonActionPerformed(java.awt.event.ActionEvent evt) {                                         
+        String operation = (String) BitwiseGatesComboBox.getSelectedItem();
+        int bits = BitsComboBox.getSelectedIndex() == 0 ? 8 : 16;
+        int mask = (1 << bits) - 1;          // 8 bit -> 0xFF (255), 16 bit -> 0xFFFF (65535)
 
-    try {
-        int a = readNumber(InputField1, "first number", bits, mask);
-        String result;
+        try {
+            int a = readNumber(InputField1, Base1ComboBox, "first number", bits, mask);
+            String result;
 
-        switch (operation) {
-            case "NOT": {
-                int r = ~a & mask;
-                result = "Operation: NOT (" + bits + "-bit)\n\n"
-                        + "     " + toBinary(a, bits) + "   (" + a + ")\n"
-                        + "NOT  " + "-".repeat(bits) + "\n"
-                        + "  =  " + toBinary(r, bits) + "   (" + r + ")\n";
-                result += summary(r, bits);
-                break;
-            }
-            case "AND":
-            case "OR":
-            case "XOR": {
-                int b = readNumber(InputField2, "second number", bits, mask);
-                int r;
-                if (operation.equals("AND")) {
-                    r = a & b;
-                } else if (operation.equals("OR")) {
-                    r = a | b;
-                } else {
-                    r = a ^ b;
+            switch (operation) {
+                case "NOT": {
+                    int r = ~a & mask;
+                    result = "Operation: NOT (" + bits + "-bit)\n\n"
+                            + "     " + toBinary(a, bits) + "   (" + a + ")\n"
+                            + "NOT  " + "-".repeat(bits) + "\n"
+                            + "  =  " + toBinary(r, bits) + "   (" + r + ")\n";
+                    result += summary(r, bits);
+                    break;
                 }
-                String sym = String.format("%-4s", operation);
-                result = "Operation: " + operation + " (" + bits + "-bit)\n\n"
-                        + "     " + toBinary(a, bits) + "   (" + a + ")\n"
-                        + sym + " " + toBinary(b, bits) + "   (" + b + ")\n"
-                        + "     " + "-".repeat(bits) + "\n"
-                        + "  =  " + toBinary(r, bits) + "   (" + r + ")\n";
-                result += summary(r, bits);
-                break;
+                case "AND":
+                case "OR":
+                case "XOR": {
+                    int b = readNumber(InputField2, Base2ComboBox, "second number", bits, mask);
+                    int r;
+                    if (operation.equals("AND")) {
+                        r = a & b;
+                    } else if (operation.equals("OR")) {
+                        r = a | b;
+                    } else {
+                        r = a ^ b;
+                    }
+                    String sym = String.format("%-4s", operation);
+                    result = "Operation: " + operation + " (" + bits + "-bit)\n\n"
+                            + "     " + toBinary(a, bits) + "   (" + a + ")\n"
+                            + sym + " " + toBinary(b, bits) + "   (" + b + ")\n"
+                            + "     " + "-".repeat(bits) + "\n"
+                            + "  =  " + toBinary(r, bits) + "   (" + r + ")\n";
+                    result += summary(r, bits);
+                    break;
+                }
+                case "SHL <<":
+                case "SHR >>": {
+                    int shift = readShift(InputField2, Base2ComboBox, bits);
+                    boolean left = operation.startsWith("SHL");
+                    // Logical shift, kept inside the chosen bit width
+                    int r = left ? (a << shift) & mask : (a >>> shift) & mask;
+                    String sym = left ? "<<" : ">>";
+                    result = "Operation: " + operation + " (" + bits + "-bit)\n\n"
+                            + "     " + toBinary(a, bits) + "   (" + a + ")\n"
+                            + String.format("%-4s %d", sym, shift) + "\n"
+                            + "     " + "-".repeat(bits) + "\n"
+                            + "  =  " + toBinary(r, bits) + "   (" + r + ")\n";
+                    result += summary(r, bits);
+                    break;
+                }
+                default:
+                    result = "Unknown operation.";
             }
-            case "SHL <<":
-            case "SHR >>": {
-                int shift = readShift(InputField2, bits);
-                boolean left = operation.startsWith("SHL");
-                int r = left ? (a << shift) & mask : (a >>> shift) & mask;
-                String sym = left ? "<<" : ">>";
-                result = "Operation: " + operation + " (" + bits + "-bit)\n\n"
-                        + "     " + toBinary(a, bits) + "   (" + a + ")\n"
-                        + String.format("%-4s %d", sym, shift) + "\n"
-                        + "     " + "-".repeat(bits) + "\n"
-                        + "  =  " + toBinary(r, bits) + "   (" + r + ")\n";
-                result += summary(r, bits);
-                break;
-            }
-            default:
-                result = "Unknown operation.";
+
+            OutputArea.setText(result);
+            OutputArea.setCaretPosition(0);
+        } catch (IllegalArgumentException ex) {
+            OutputArea.setText("Error: " + ex.getMessage());
         }
+    }                     
 
-        OutputArea.setText(result);
-        OutputArea.setCaretPosition(0);
-    } catch (IllegalArgumentException ex) {
-        OutputArea.setText("Error: " + ex.getMessage());
+    /** Returns the radix (2, 8, 10 or 16) chosen in a base combo box. */
+    private int getRadix(javax.swing.JComboBox<String> baseBox) {
+        switch ((String) baseBox.getSelectedItem()) {
+            case "Binary": return 2;
+            case "Octal":  return 8;
+            case "Hex":    return 16;
+            default:       return 10;
+        }
     }
-}
 
-    private int readNumber(javax.swing.JTextField field, String name, int bits, int mask) {
+    /**
+     * Parses the text of a field using the base chosen in its combo box.
+     * Spaces and underscores are ignored (e.g. "1010 1100"), and an optional
+     * matching prefix (0b, 0o, 0x) is allowed.
+     */
+    private int parseInBase(javax.swing.JTextField field, javax.swing.JComboBox<String> baseBox, String name) {
         String text = field.getText().trim().replace("_", "").replace(" ", "");
         if (text.isEmpty()) {
             throw new IllegalArgumentException("Please enter the " + name + ".");
         }
-        int value;
-        try {
-            String lower = text.toLowerCase();
-            if (lower.startsWith("0b")) {
-                value = Integer.parseInt(text.substring(2), 2);
-            } else if (lower.startsWith("0x")) {
-                value = Integer.parseInt(text.substring(2), 16);
-            } else {
-                value = Integer.parseInt(text);
-            }
-        } catch (NumberFormatException ex) {
-            throw new IllegalArgumentException("\"" + field.getText().trim() + "\" is not a valid "
-                    + name + ".\nUse decimal (12), binary (0b1100) or hex (0xC).");
+        int radix = getRadix(baseBox);
+        String lower = text.toLowerCase();
+        if ((radix == 2 && lower.startsWith("0b"))
+                || (radix == 8 && lower.startsWith("0o"))
+                || (radix == 16 && lower.startsWith("0x"))) {
+            text = text.substring(2);
         }
+        try {
+            return Integer.parseInt(text, radix);
+        } catch (NumberFormatException ex) {
+            String baseName = ((String) baseBox.getSelectedItem()).toLowerCase();
+            String digits;
+            switch (radix) {
+                case 2:  digits = "only 0 and 1"; break;
+                case 8:  digits = "only digits 0-7"; break;
+                case 16: digits = "only digits 0-9 and letters A-F"; break;
+                default: digits = "only digits 0-9"; break;
+            }
+            throw new IllegalArgumentException("\"" + field.getText().trim() + "\" is not a valid "
+                    + baseName + " number.\nA " + baseName + " number uses " + digits + ".");
+        }
+    }
+
+    /** Reads a number that must fit in the selected number of bits (unsigned). */
+    private int readNumber(javax.swing.JTextField field, javax.swing.JComboBox<String> baseBox,
+            String name, int bits, int mask) {
+        int value = parseInBase(field, baseBox, name);
         if (value < 0 || value > mask) {
             throw new IllegalArgumentException("The " + name + " must be between 0 and " + mask
-                    + " for " + bits + "-bit.");
+                    + " (decimal) for " + bits + "-bit.");
         }
         return value;
     }
 
-    private int readShift(javax.swing.JTextField field, int bits) {
-        String text = field.getText().trim();
-        if (text.isEmpty()) {
-            throw new IllegalArgumentException("Please enter the shift amount in the second field.");
-        }
-        int shift;
-        try {
-            shift = Integer.parseInt(text);
-        } catch (NumberFormatException ex) {
-            throw new IllegalArgumentException("Shift amount must be a whole number.");
-        }
+    /** Reads the shift amount (how many positions to shift) from the second field. */
+    private int readShift(javax.swing.JTextField field, javax.swing.JComboBox<String> baseBox, int bits) {
+        int shift = parseInBase(field, baseBox, "shift amount");
         if (shift < 0 || shift > bits) {
-            throw new IllegalArgumentException("Shift amount must be between 0 and " + bits + ".");
+            throw new IllegalArgumentException("Shift amount must be between 0 and " + bits + " (decimal).");
         }
         return shift;
     }
 
+    /** Converts a value to a zero-padded binary string of the given width. */
     private String toBinary(int value, int bits) {
         String bin = Integer.toBinaryString(value);
         return "0".repeat(Math.max(0, bits - bin.length())) + bin;
     }
 
+    /** Result shown in binary, decimal, octal and hexadecimal. */
     private String summary(int r, int bits) {
         return "\nResult:\n"
                 + "  Binary : " + toBinary(r, bits) + "\n"
@@ -249,8 +291,6 @@ private void GoButtonActionPerformed(java.awt.event.ActionEvent evt) {
                 + "  Octal  : (" + Integer.toOctalString(r) + ")\u2088\n"
                 + "  Hex    : (" + String.format("%0" + (bits / 4) + "X", r) + ")\u2081\u2086\n";
     }
-
-                       
 
     /**
      * @param args the command line arguments
@@ -280,6 +320,8 @@ private void GoButtonActionPerformed(java.awt.event.ActionEvent evt) {
     // Variables declaration - do not modify                     
     private javax.swing.JComboBox<String> BitsComboBox;
     private javax.swing.JComboBox<String> BitwiseGatesComboBox;
+    private javax.swing.JComboBox<String> Base1ComboBox;
+    private javax.swing.JComboBox<String> Base2ComboBox;
     private javax.swing.JButton GoButton;
     private javax.swing.JTextField InputField1;
     private javax.swing.JTextField InputField2;
